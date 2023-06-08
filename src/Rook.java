@@ -11,20 +11,6 @@ import java.util.ArrayList;
  */
 public class Rook
     extends ChessGamePiece{
-    // private ArrayList<String> possibleMoves;
-    // ----------------------------------------------------------
-    /**
-     * Create a new Rook object.
-     *
-     * @param board
-     *            the board to create the rook on
-     * @param row
-     *            the row to create the rook on
-     * @param col
-     *            the column to create the rook on
-     * @param color
-     *            either GamePiece.WHITE, BLACK, or UNASSIGNED
-     */
     public Rook( ChessGameBoard board, int row, int col, int color ){
         super( board, row, col, color );
     }

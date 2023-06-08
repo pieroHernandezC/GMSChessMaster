@@ -1,9 +1,10 @@
-import java.util.ArrayList;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Color;
 import javax.swing.JPanel;
 import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.List;
 // -------------------------------------------------------------------------
 /**
  * The panel that represents the Chess game board. Contains a few methods that
@@ -16,7 +17,7 @@ import java.awt.GridLayout;
  */
 public class ChessGameBoard extends JPanel{
     private BoardSquare[][] chessCells;
-    private BoardListener   listener;
+    private transient BoardListener listener;
     // ----------------------------------------------------------
     /**
      * Returns the entire board.
@@ -73,8 +74,8 @@ public class ChessGameBoard extends JPanel{
      *
      * @return ArrayList<GamePiece> the pieces
      */
-    public ArrayList<ChessGamePiece> getAllWhitePieces(){
-        ArrayList<ChessGamePiece> whitePieces = new ArrayList<ChessGamePiece>();
+    public List<ChessGamePiece> getAllWhitePieces(){
+        List<ChessGamePiece> whitePieces = new ArrayList<>();
         for ( int i = 0; i < 8; i++ ){
             for ( int j = 0; j < 8; j++ ){
                 if ( chessCells[i][j].getPieceOnSquare() != null
@@ -92,8 +93,8 @@ public class ChessGameBoard extends JPanel{
      *
      * @return ArrayList<GamePiece> the pieces
      */
-    public ArrayList<ChessGamePiece> getAllBlackPieces(){
-        ArrayList<ChessGamePiece> blackPieces = new ArrayList<ChessGamePiece>();
+    public List<ChessGamePiece> getAllBlackPieces(){
+        List<ChessGamePiece> blackPieces = new ArrayList<>();
         for ( int i = 0; i < 8; i++ ){
             for ( int j = 0; j < 8; j++ ){
                 if ( chessCells[i][j].getPieceOnSquare() != null
@@ -151,61 +152,65 @@ public class ChessGameBoard extends JPanel{
         //revalidate();
         // only the combination of these two calls work...*shrug*
     }
+    
+    // Se pasara a refactorizar el siguiente metodo y los separamos en dos
+    //llamandolo uno al otro para que se disminuya con extract class
+    // y no tener un code smell tipo Long Method
+    
+    
     /**
      * (Re)initializes this ChessGameBoard to its default layout with all 32
      * pieces added.
      */
-    public void initializeBoard(){
-        resetBoard( false );
-        for ( int i = 0; i < chessCells.length; i++ ){
-            for ( int j = 0; j < chessCells[0].length; j++ ){
-                ChessGamePiece pieceToAdd;
-                if ( i == 1 ) // black pawns
-                {
-                    pieceToAdd = new Pawn( this, i, j, ChessGamePiece.BLACK );
-                }
-                else if ( i == 6 ) // white pawns
-                {
-                    pieceToAdd = new Pawn( this, i, j, ChessGamePiece.WHITE );
-                }
-                else if ( i == 0 || i == 7 ) // main rows
-                {
-                    int colNum =
-                        i == 0 ? ChessGamePiece.BLACK : ChessGamePiece.WHITE;
-                    if ( j == 0 || j == 7 ){
-                        pieceToAdd = new Rook( this, i, j, colNum );
-                    }
-                    else if ( j == 1 || j == 6 ){
-                        pieceToAdd = new Knight( this, i, j, colNum );
-                    }
-                    else if ( j == 2 || j == 5 ){
-                        pieceToAdd = new Bishop( this, i, j, colNum );
-                    }
-                    else if ( j == 3 ){
-                        pieceToAdd = new King( this, i, j, colNum );
-                    }
-                    else
-                    {
-                        pieceToAdd = new Queen( this, i, j, colNum );
-                    }
-                }
-                else
-                {
-                    pieceToAdd = null;
-                }
-                chessCells[i][j] = new BoardSquare( i, j, pieceToAdd );
-                if ( ( i + j ) % 2 == 0 ){
-                    chessCells[i][j].setBackground( Color.WHITE );
-                }
-                else
-                {
-                    chessCells[i][j].setBackground( Color.BLACK );
-                }
-                chessCells[i][j].addMouseListener( listener );
-                this.add( chessCells[i][j] );
+       public void initializeBoard() {
+       resetBoard(false);
+       for (int i = 0; i < chessCells.length; i++) {
+           for (int j = 0; j < chessCells[0].length; j++) {
+               ChessGamePiece pieceToAdd = createPieceToAdd(i, j);
+               BoardSquare square = new BoardSquare(i, j, pieceToAdd);
+               setSquareBackground(square, i, j);
+               addMouseListenerToSquare(square);
+               chessCells[i][j] = square;
+               this.add(square);
+           }
+       }
+    }
+
+    private ChessGamePiece createPieceToAdd(int i, int j) {
+        if (i == 1) {
+            return new Pawn(this, i, j, ChessGamePiece.BLACK);
+        } else if (i == 6) {
+            return new Pawn(this, i, j, ChessGamePiece.WHITE);
+        } else if (i == 0 || i == 7) {
+            int colNum = (i == 0) ? ChessGamePiece.BLACK : ChessGamePiece.WHITE;
+            if (j == 0 || j == 7) {
+                return new Rook(this, i, j, colNum);
+            } else if (j == 1 || j == 6) {
+                return new Knight(this, i, j, colNum);
+            } else if (j == 2 || j == 5) {
+                return new Bishop(this, i, j, colNum);
+            } else if (j == 3) {
+                return new King(this, i, j, colNum);
+            } else {
+                return new Queen(this, i, j, colNum);
             }
+        } else {
+            return null;
         }
     }
+    
+    private void setSquareBackground(BoardSquare square, int i, int j) {
+        if ((i + j) % 2 == 0) {
+            square.setBackground(Color.WHITE);
+        } else {
+            square.setBackground(Color.BLACK);
+        }
+    }
+
+    private void addMouseListenerToSquare(BoardSquare square) {
+        square.addMouseListener(listener);
+    }
+    
     // ----------------------------------------------------------
     /**
      * Clears the colors on the board.
